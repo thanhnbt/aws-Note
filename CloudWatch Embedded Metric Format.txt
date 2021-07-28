@@ -1,0 +1,9 @@
+Nếu ai xài CloudWatch với PutMetricData API ở scale lớn, sẽ thấy là pricing của CloudWatch cho API này khá đắt: 0.01$ per 1000 requests
+Giá này tương đương với 10$ cho mỗi 1 triệu requests PutMetricData. Ở scale lớn thì 1 tháng 1 tỷ hay vài tỷ requests này là khá phổ biến. Lúc này bạn tốn tầm 10,000 USD 1 tháng rồi (giả sử là 1 tỷ requests/month).
+Thế optimize cost cho việc này thế nào?
+Đơn giản nhất là chúng ta xài queue và aggregate metrics lại trước khi send để giảm số requests.
+Cách này vẫn bị tăng cost lên vì ta phải dùng 1 loại queue system (eg: SQS) và 1 loại compute (eg: Lambda) để aggregate requests.
+AWS có support 1 dạng format là CloudWatch Embedded Metric Format. Cái này giúp bạn có thể embed metrics vào trong log. Trong khi CloudWatch Logs lại pricing theo kiểu khác tuỳ theo ingestion data volume và cái này rẻ hơn rất nhiều.
+Thế nếu chúng ta ko quan tâm tới logs thì sao và chỉ embed metrics vào thì sao? Bằng cách này chúng ta chuyển pricing từ kiểu theo số requests, sang ingestion volume data của CloudWatch Logs.
+Và vì chúng ta ko quan tâm tới logs, chỉ cần metrics nên set retention của logs xuống thấp nhất có thể. Khi logs bị xoá đi thì các metrics này vẫn đc giữ lại.
+Bằng cách này, cost sẽ giảm đc tầm 80-90% tuỳ theo payload size của metrics của bạn
